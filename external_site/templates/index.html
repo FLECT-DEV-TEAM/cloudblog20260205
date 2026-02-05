@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+  <title>OAuth2 Demo</title>
+</head>
+<body>
+  <h1>OAuth2 Demo</h1>
+  {% if logged_in %}
+    <p>You are logged in.</p>
+    <p><a href="/api/access-token">Get access token</a> (API)</p>
+    <p><a href="/logout">Logout</a></p>
+    <p><a href="javascript:clearSession()">Clear session</a></p>
+    <script type='text/javascript'>
+      // 組み込みサービスリリースのスニペットを貼り付ける
+      function initEmbeddedMessaging() {
+        try {
+          embeddedservice_bootstrap.settings.language = 'en_US'; // For example, enter 'en' or 'en-US'
+
+          embeddedservice_bootstrap.init(
+            '00Dg5xxxxxxxxxx',
+            't219tecptl484_web',
+            'https://orgfarm-xxxxxxxxxx-dev-ed.develop.my.site.com/ESWt219tecptl484web1770257131418',
+            {
+              scrt2URL: 'https://orgfarm-xxxxxxxxxx-dev-ed.develop.my.salesforce-scrt.com'
+            }
+          );
+        } catch (err) {
+          console.error('Error loading Embedded Messaging: ', err);
+        }
+      };
+      // 組み込みサービスリリースのスニペットを貼り付ける(終わり)
+
+      window.addEventListener("onEmbeddedMessagingReady", async() => {
+        // fetch access token from /api/access-token
+        const response = await fetch('/api/access-token');
+        const data = await response.json();
+        const accessToken = data.access_token;
+        try { 
+          // アクセストークンを組み込みサービスリリースに設定する
+          await embeddedservice_bootstrap.userVerificationAPI.setIdentityToken({
+                  identityTokenType: "JWT",
+                    identityToken: accessToken 
+                });
+        } catch (err) {
+          console.error('Error setting identity token: ', err);
+        }
+      });
+      const clearSession = async () => {
+        try {
+          await embeddedservice_bootstrap.userVerificationAPI.clearSession(true);
+        } catch (err) {
+          console.error('Error clearing session: ', err);
+        }
+      }
+    </script>
+    <script type='text/javascript' src='https://orgfarm-xxxxxxxxxx-dev-ed.develop.my.site.com/ESWt219tecptl4841769993221476/assets/js/bootstrap.min.js' onload='initEmbeddedMessaging()'></script>
+    
+  {% else %}
+    <p><a href="/login">Login with OAuth2</a></p>
+  {% endif %}
+</body>
+</html>
